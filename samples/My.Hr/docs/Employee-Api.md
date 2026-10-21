@@ -44,7 +44,7 @@ entities:
 Once the reference data has been configured the code-generation can be performed. Use the following command line to generate. This will generate all of the required layers, from the API controller, through to the database access using Entity Framework. This is all that is required to operationalize the end-to-end reference data functionality. 
 
 ```
-dotnet run refdata
+dotnet run --framework net10.0 -- refdata
 ```
 
 <br/>
@@ -198,7 +198,7 @@ entities:
 Once the entities has been configured the code-generation can be performed. Use the following command line to generate. This will generate all of the required layers, from the API controller, through to the database access using Stored Procedures where configured. 
 
 ```
-dotnet run entity
+dotnet run --framework net10.0 -- entity
 ```
 
 <br/>

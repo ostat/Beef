@@ -6,6 +6,8 @@ Also, it will demonstrate how the data can be shaped differently between the dat
 
 This sample will walkthrough an approach of adding the capabilities in a series of logical steps, versus big-bang (all at once), as this is more typical of how a developer may implement.
 
+The checked-in sample targets both .NET 8 and .NET 10. Use the .NET 10 SDK to build both targets. Select a framework when running a project, for example `dotnet run --project My.Hr.Api --framework net10.0`. The walkthrough commands use `--framework net10.0`; substitute `--framework net8.0` to run with .NET 8. Install the ASP.NET Core runtime for the selected framework to run the API and tests.
+
 </br>
 
 ## Scope

@@ -42,7 +42,7 @@ The `Termination` operation needs to be added to the `Employee` entity configura
 Execute the code-generation using the command line.
 
 ```
-dotnet run entity
+dotnet run --framework net10.0 -- entity
 ```
 
 </br>

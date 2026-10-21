@@ -18,12 +18,36 @@ namespace Beef.AspNetCore.WebApi
     public static class WebApiStartup
     {
         /// <summary>
+        /// Creates the generic host with the standardized configuration and the specified API startup class.
+        /// </summary>
+        /// <typeparam name="TStartup">The API startup <see cref="Type"/>.</typeparam>
+        /// <param name="args">The command line args.</param>
+        /// <param name="environmentVariablePrefix">The prefix that the environment variables must start with (will automatically add a trailing underscore where not supplied).</param>
+        /// <returns>The <see cref="IHostBuilder"/>.</returns>
+        public static IHostBuilder CreateHost<TStartup>(string[] args, string? environmentVariablePrefix = null) where TStartup : class =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder => webBuilder
+                    .ConfigureAppConfiguration((hostingContext, config) => ConfigurationBuilder<TStartup>(config, args, hostingContext.HostingEnvironment, environmentVariablePrefix))
+                    .UseStartup<TStartup>());
+
+        /// <summary>
+        /// Creates and builds the generic host with the standardized configuration and the specified API startup class.
+        /// </summary>
+        /// <typeparam name="TStartup">The API startup <see cref="Type"/>.</typeparam>
+        /// <param name="args">The command line args.</param>
+        /// <param name="environmentVariablePrefix">The prefix that the environment variables must start with (will automatically add a trailing underscore where not supplied).</param>
+        /// <returns>The <see cref="IHost"/>.</returns>
+        public static IHost BuildHost<TStartup>(string[] args, string? environmentVariablePrefix = null) where TStartup : class =>
+            CreateHost<TStartup>(args, environmentVariablePrefix).Build();
+
+        /// <summary>
         /// Creates the <see cref="IWebHost"/> using the <c>WebHost.CreateDefaultBuilder(string[])</c> utilizing the standardized <see cref="ConfigurationBuilder"/>.
         /// </summary>
         /// <typeparam name="TStartup">The API startup <see cref="Type"/>.</typeparam>
         /// <param name="args">The command line args.</param>
         /// <param name="environmentVariablePrefix">The prefix that the environment variables must start with (will automatically add a trailing underscore where not supplied).</param>
         /// <returns>The <see cref="IWebHost"/>.</returns>
+        [Obsolete("Use CreateHost<TStartup> to create a generic host instead.")]
         public static IWebHostBuilder CreateWebHost<TStartup>(string[] args, string? environmentVariablePrefix = null) where TStartup : class =>
             WebHost.CreateDefaultBuilder(args)
                    .ConfigureAppConfiguration((hostingContext, config) => ConfigurationBuilder<TStartup>(config, args, hostingContext.HostingEnvironment, environmentVariablePrefix))
@@ -36,6 +60,7 @@ namespace Beef.AspNetCore.WebApi
         /// <param name="args">The command line args.</param>
         /// <param name="environmentVariablePrefix">The prefix that the environment variables must start with (will automatically add a trailing underscore where not supplied).</param>
         /// <returns>The <see cref="IWebHost"/>.</returns>
+        [Obsolete("Use BuildHost<TStartup> to build a generic host instead.")]
         public static IWebHost BuildWebHost<TStartup>(string[] args, string? environmentVariablePrefix = null) where TStartup : class =>
             CreateWebHost<TStartup>(args, environmentVariablePrefix).Build();
 

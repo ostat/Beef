@@ -41,7 +41,7 @@ Within the `Migrations` folder there will three entries that were created during
 Create the `Hr` schema using the database tooling. This following command will create the migration script using the pre-defined naming convention and templated T-SQL to aid development.
 
 ```
-dotnet run script schema Hr
+dotnet run --framework net10.0 -- script schema Hr
 ```
 
 
@@ -50,7 +50,7 @@ dotnet run script schema Hr
 Create the migration script for the `Employee` table table within the `Hr` schema following a similar naming convention to ensure it is executed (applied) in the correct order. This following command will create the migration script using the pre-defined naming convention and templated T-SQL to aid development.
 
 ```
-dotnet run script create Hr Employee
+dotnet run --framework net10.0 -- script create Hr Employee
 ```
 
 For the purposes of this step, open the newly created migration script and replace its contents with the following. Additional notes have been added to give context/purpose where applicable.
@@ -89,7 +89,7 @@ COMMIT TRANSACTION
 Use the following command line to generate the migration script to create the `EmergencyContact` table within the `Hr` schema.
 
 ```
-dotnet run script create Hr EmergencyContact
+dotnet run --framework net10.0 -- script create Hr EmergencyContact
 ```
 
 Replace the contents with the following. _Note_: that we removed the row version and auditing columns as these are not required as this table is to be tightly-coupled to the `Employee`, and therefore can only (and should only) be updated in that context (i.e. is a sub-table).
@@ -124,10 +124,10 @@ To support the capabilities of the tables above the following Reference Data tab
 At the command line execute the following commands. This will automatically create the tables as required using the reference data template given the `creatref` option specified. No further changes will be needed for these tables.
 
 ```
-dotnet run script refdata Hr Gender
-dotnet run script refdata Hr TerminationReason
-dotnet run script refdata Hr RelationshipType
-dotnet run script refdata Hr USState
+dotnet run --framework net10.0 -- script refdata Hr Gender
+dotnet run --framework net10.0 -- script refdata Hr TerminationReason
+dotnet run --framework net10.0 -- script refdata Hr RelationshipType
+dotnet run --framework net10.0 -- script refdata Hr USState
 ```
 
 <br/>
@@ -259,13 +259,13 @@ Once the configuration has been completed then the database can be created/updat
 At the command line execute the following command to perform. The log output will describe all actions that were performed.
 
 ```
-dotnet run all
+dotnet run --framework net10.0 -- all
 ```
 
 If at any stage the database becomes corrupted or you need to rebuild, execute the following to drop and start again.
 
 ```
-dotnet run drop
+dotnet run --framework net10.0 -- drop
 ```
 
 <br/>
@@ -281,7 +281,7 @@ Where tables need indexes and other constraints added these would be created usi
 To support the [transactional outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html) there is the need to have the backing event queue tables. The migration scripts to create these can be code generated using the following.
 
 ```
-dotnet run codegen --script DatabaseEventOutbox
+dotnet run --framework net10.0 -- codegen --script DatabaseEventOutbox
 ```
 
 This should create two migrations script files with names similar as follows.
@@ -298,7 +298,7 @@ The corresponding stored procedures and user defined types will be automatically
 At the command line execute the following command to update the database using the new migration scripts.
 
 ```
-dotnet run all
+dotnet run --framework net10.0 -- all
 ```
 
 <br/>

@@ -21,7 +21,7 @@ A new `PerformanceReview` table and related Entity Framework (EF) model will be 
 First step, as was previously the case, is to create the `PerformanceReview` table migration script. Execute the following to create the migration script for the `My.Hr.Database` project.
 
 ```
-dotnet run script create Hr PerformanceReview
+dotnet run --framework net10.0 -- script create Hr PerformanceReview
 ```
 
 Open the newly created migration script and replace its contents with the following.
@@ -55,7 +55,7 @@ COMMIT TRANSACTION
 To support the above a `Hr.PerformanceOutcome` table is also required. Execute the following to create the migration script. No further changes will be needed.
 
 ```
-dotnet run scriptnew create Hr PerformanceOutcome
+dotnet run --framework net10.0 -- scriptnew create Hr PerformanceOutcome
 ```
 
 <br/>
@@ -109,7 +109,7 @@ Once the configuration has been completed then the database can be created/updat
 At the command line execute the following command to perform. The log output will describe all actions that were performed.
 
 ```
-dotnet run all
+dotnet run --framework net10.0 -- all
 ```
 
 <br/>
@@ -125,7 +125,7 @@ The reference data API for the `PerformanceOutcome` needs to be added. Append th
 Once the reference data has been configured the code-generation can be performed. Use the following command line to generate.
 
 ```
-dotnet run refdata
+dotnet run --framework net10.0 -- refdata
 ```
 
 <br/>
@@ -187,7 +187,7 @@ The `PerformanceReview` entity and operations configuration is required as follo
 Once configured the code-generation can be performed. Use the following command line to generate.
 
 ```
-dotnet run entity
+dotnet run --framework net10.0 -- entity
 ```
 
 <br/>

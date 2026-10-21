@@ -81,7 +81,7 @@ So that the code-gen knows what Entity Framework model is to be used this needs 
 Execute the code-generation using the command line.
 
 ```
-dotnet run entity
+dotnet run --framework net10.0 -- entity
 ```
 
 </br>

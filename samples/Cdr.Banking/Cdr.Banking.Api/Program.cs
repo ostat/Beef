@@ -1,5 +1,5 @@
 ﻿using Beef.AspNetCore.WebApi;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Cdr.Banking.Api
 {
@@ -12,13 +12,13 @@ namespace Cdr.Banking.Api
         /// Main startup.
         /// </summary>
         /// <param name="args">The startup arguments.</param>
-        public static void Main(string[] args) => CreateWebHostBuilder(args).Build().Run();
+        public static void Main(string[] args) => CreateHostBuilder(args).Build().Run();
 
         /// <summary>
-        /// Creates the <see cref="IWebHostBuilder"/>.
+        /// Creates the <see cref="IHostBuilder"/>.
         /// </summary>
         /// <param name="args">The startup arguments.</param>
-        /// <returns>The <see cref="IWebHostBuilder"/>.</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebApiStartup.CreateWebHost<Startup>(args, "Banking");
+        /// <returns>The <see cref="IHostBuilder"/>.</returns>
+        public static IHostBuilder CreateHostBuilder(string[] args) => WebApiStartup.CreateHost<Startup>(args, "Banking");
     }
 }

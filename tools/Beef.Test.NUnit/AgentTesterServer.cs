@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Net.Http;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace Beef.Test.NUnit
     /// <typeparam name="TStartup">The <see cref="Type"/> of the startup entry point.</typeparam>
     public class AgentTesterServer<TStartup> : AgentTesterBase, IDisposable where TStartup : class
     {
+        private readonly IHost _host;
         private ResponseVersionHandler? _responseVersionHandler;
         private bool _disposed;
 
@@ -44,13 +46,25 @@ namespace Beef.Test.NUnit
                 ReplaceEventPublisher(sc);
             });
 
-            var whb = new WebHostBuilder()
+            _host = new HostBuilder()
                 .UseEnvironment(environment)
-                .UseStartup<TStartup>()
-                .ConfigureTestServices(action)
-                .UseConfiguration(config ?? AgentTester.BuildConfiguration<TStartup>(environmentVariablePrefix, environment));
+                .ConfigureWebHost(webBuilder => webBuilder
+                    .UseTestServer()
+                    .UseStartup<TStartup>()
+                    .ConfigureTestServices(action)
+                    .UseConfiguration(config ?? AgentTester.BuildConfiguration<TStartup>(environmentVariablePrefix, environment)))
+                .Build();
 
-            TestServer = new TestServer(whb);
+            try
+            {
+                _host.StartAsync().GetAwaiter().GetResult();
+                TestServer = _host.GetTestServer();
+            }
+            catch
+            {
+                _host.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -132,8 +146,15 @@ namespace Beef.Test.NUnit
             {
                 if (disposing)
                 {
-                    TestServer.Dispose();
                     _responseVersionHandler?.Dispose();
+                    try
+                    {
+                        _host.StopAsync().GetAwaiter().GetResult();
+                    }
+                    finally
+                    {
+                        _host.Dispose();
+                    }
                 }
 
                 _disposed = true;
