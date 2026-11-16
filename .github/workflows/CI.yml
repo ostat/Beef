@@ -1,0 +1,131 @@
+# CI for the Beef v4 (.NET 10 uplift) branch.
+# Adapted from master's CI.yml (v5) to the v4 layout: v4 tests create/reset their own databases via
+# TestSetUp, use different configuration keys, and v4 has no MyEf.Hr / MySQL / Postgres tooling.
+
+name: .NET (v4)
+
+on:
+  push:
+    branches: [ "version-4_net10" ]
+  pull_request:
+    branches: [ "version-4_net10" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_NOLOGO: true
+      # Beef.Demo.Test - config built with "Beef" prefix; key 'ConnectionStrings:BeefDemo'.
+      Beef_ConnectionStrings__BeefDemo: Data Source=localhost,1433;Initial Catalog=Beef.Test;User id=sa;Password=sAPWD23.^0;TrustServerCertificate=true
+      # Beef.Demo.Test Cosmos (optional) - only used by the Cosmos test step when the secrets exist.
+      Beef_CosmosDb__EndPoint: ${{ secrets.COSMOS_ENDPOINT }}
+      Beef_CosmosDb__AuthKey: ${{ secrets.COSMOS_AUTHKEY }}
+      # My.Hr.Test - TestSetUp.DefaultEnvironmentVariablePrefix = "Hr"; key 'ConnectionStrings:Database'.
+      Hr_ConnectionStrings__Database: Data Source=localhost,1433;Initial Catalog=My.Hr;User id=sa;Password=sAPWD23.^0;TrustServerCertificate=true
+
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: sAPWD23.^0
+        options: --name sqlserver
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+            6.0.x
+            8.0.x
+            10.0.x
+
+    # Tools
+
+    - name: Tools restore
+      run: |
+        dotnet restore ./tools/Beef.CodeGen.Core
+        dotnet restore ./tools/Beef.Database.Core
+        dotnet restore ./tools/Beef.Test.NUnit
+
+    - name: Tools build
+      run: |
+        dotnet build ./tools/Beef.CodeGen.Core --no-restore
+        dotnet build ./tools/Beef.Database.Core --no-restore
+        dotnet build ./tools/Beef.Test.NUnit --no-restore
+
+    # Unit tests (no external dependencies)
+
+    - name: Unit tests build
+      run: |
+        dotnet build ./tests/Beef.Core.UnitTest
+        dotnet build ./tests/Beef.Events.UnitTest
+
+    - name: Unit tests
+      run: |
+        dotnet test ./tests/Beef.Core.UnitTest --no-build
+        dotnet test ./tests/Beef.Events.UnitTest --no-build
+
+    # Samples/Demo
+
+    - name: Samples/Demo restore
+      run: |
+        dotnet restore ./samples/Demo/Beef.Demo.CodeGen
+        dotnet restore ./samples/Demo/Beef.Demo.Database
+        dotnet restore ./samples/Demo/Beef.Demo.Common
+        dotnet restore ./samples/Demo/Beef.Demo.Business
+        dotnet restore ./samples/Demo/Beef.Demo.Api
+        dotnet restore ./samples/Demo/Beef.Demo.Abc.Database
+        dotnet restore ./samples/Demo/Beef.Demo.Test
+
+    - name: Samples/Demo build
+      run: |
+        dotnet build ./samples/Demo/Beef.Demo.CodeGen --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Database --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Common --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Business --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Api --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Abc.Database --no-restore
+        dotnet build ./samples/Demo/Beef.Demo.Test --no-restore
+
+    # Database is created/reset by the test fixture (DatabaseExecutorCommand.ResetAndDatabase).
+    # Cosmos-backed fixtures and fixtures calling public OData services are excluded here.
+    - name: Samples/Demo testing (SQL)
+      run: >
+        dotnet test ./samples/Demo/Beef.Demo.Test --no-build
+        --filter "FullyQualifiedName!~Beef.Demo.Test.RobotTest&FullyQualifiedName!~Beef.Demo.Test.RobotGrpcTest&FullyQualifiedName!~Beef.Demo.Test.ReferenceDataTest&FullyQualifiedName!~Beef.Demo.Test.SubscribersTest&FullyQualifiedName!~Beef.Demo.Test.TripPersonTest"
+
+    - name: Samples/Demo testing (Cosmos)
+      if: env.Beef_CosmosDb__EndPoint != ''
+      run: >
+        dotnet test ./samples/Demo/Beef.Demo.Test --no-build
+        --filter "FullyQualifiedName~Beef.Demo.Test.RobotTest|FullyQualifiedName~Beef.Demo.Test.RobotGrpcTest|FullyQualifiedName~Beef.Demo.Test.ReferenceDataTest|FullyQualifiedName~Beef.Demo.Test.SubscribersTest"
+
+    # Samples/My.Hr
+
+    - name: Samples/My.Hr restore
+      run: |
+        dotnet restore ./samples/My.Hr/My.Hr.CodeGen
+        dotnet restore ./samples/My.Hr/My.Hr.Database
+        dotnet restore ./samples/My.Hr/My.Hr.Common
+        dotnet restore ./samples/My.Hr/My.Hr.Business
+        dotnet restore ./samples/My.Hr/My.Hr.Api
+        dotnet restore ./samples/My.Hr/My.Hr.Test
+
+    - name: Samples/My.Hr build
+      run: |
+        dotnet build ./samples/My.Hr/My.Hr.CodeGen --no-restore
+        dotnet build ./samples/My.Hr/My.Hr.Database --no-restore
+        dotnet build ./samples/My.Hr/My.Hr.Common --no-restore
+        dotnet build ./samples/My.Hr/My.Hr.Business --no-restore
+        dotnet build ./samples/My.Hr/My.Hr.Api --no-restore
+        dotnet build ./samples/My.Hr/My.Hr.Test --no-restore
+
+    - name: Samples/My.Hr testing
+      run: dotnet test ./samples/My.Hr/My.Hr.Test --no-build
